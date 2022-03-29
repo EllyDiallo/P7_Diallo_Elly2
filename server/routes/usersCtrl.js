@@ -12,6 +12,7 @@ module.exports = {
         const username = req.body.username;
         const password = req.body.password;
         const bio = req.body.bio;
+        const picture = req.body.picture;
 
         if(email == null || username == null || password == null || bio == null){
             res.status(400).json({err : "misssing  parameters"})
@@ -31,7 +32,8 @@ module.exports = {
                           username : username,
                           password: bcryptedPassword,
                           bio: bio,
-                          isAdmin: 0
+                          isAdmin: 0,
+                          picture: picture
                       })
                       .then(function(newUser){
 
