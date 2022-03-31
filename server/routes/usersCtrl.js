@@ -1,23 +1,26 @@
 //Import
 const bcrypt = require("bcrypt");
-const jwtUtils =require('../utils/jwt.utils');
+const jwtUtils = require('../utils/jwt.utils');
 const models = require('../models');
+const userValidation = require('../validations/validations');
 
 //Routes
 
 module.exports = {
     register: function(req,res){
         //params
+        const {body} = req;
+
+        const {error} = userValidation(body);
+        if(error) return res.status(401).json(error.details.map(i => i.message).join(','))
+
         const email = req.body.email;
         const username = req.body.username;
         const password = req.body.password;
         const bio = req.body.bio;
         const picture = req.body.picture;
 
-        if(email == null || username == null || password == null || bio == null){
-            res.status(400).json({err : "misssing  parameters"})
-        }
-
+        
         //TODO: verify pseudo length,  mail regex, password ect
 
         models.User.findOne({
