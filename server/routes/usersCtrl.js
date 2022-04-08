@@ -121,5 +121,69 @@ module.exports = {
       }
     });
         
-    }
+    },
+    getUserProfile: function(req, res) {
+    // Getting auth header
+    var headerAuth  = req.headers['authorization'];
+    var userId      = jwtUtils.getUserId(headerAuth);
+
+    if (userId < 0)
+      return res.status(400).json({ 'error': 'wrong token' });
+
+    models.User.findOne({
+      attributes: [ 'id', 'email', 'username', 'bio','picture' ],
+      where: { id: userId }
+    }).then(function(user) {
+      if (user) {
+        res.status(201).json(user);
+      } else {
+        res.status(404).json({ 'error': 'user not found' });
+      }
+    }).catch(function(err) {
+      res.status(500).json({ 'error': 'cannot fetch user' });
+    });
+  },
+  updateUserProfile: function(req, res) {
+    // Getting auth header
+    var headerAuth  = req.headers['authorization'];
+    var userId      = jwtUtils.getUserId(headerAuth);
+
+    // Params
+    var bio = req.body.bio;
+    var picture = req.body.picture;
+
+    asyncLib.waterfall([
+      function(callback) {
+        models.User.findOne({
+          attributes: ['id', 'bio','picture'],
+          where: { id: userId }
+        }).then(function (userFound) {
+          callback(null, userFound);
+        })
+        .catch(function(err) {
+          return res.status(500).json({ 'error': 'unable to verify user' });
+        });
+      },
+      function(userFound, callback) {
+        if(userFound) {
+          userFound.update({
+            bio: (bio ? bio : userFound.bio),
+            picture: (picture ? picture : userFound.picture)
+          }).then(function() {
+            callback(userFound);
+          }).catch(function(err) {
+            res.status(500).json({ 'error': 'cannot update user' });
+          });
+        } else {
+          res.status(404).json({ 'error': 'user not found' });
+        }
+      },
+    ], function(userFound) {
+      if (userFound) {
+        return res.status(201).json(userFound);
+      } else {
+        return res.status(500).json({ 'error': 'cannot update user profile' });
+      }
+    });
+}
 }
