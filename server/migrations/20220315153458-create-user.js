@@ -23,7 +23,8 @@ module.exports = {
       picture: {
         allowNull: true,
         type: Sequelize.STRING,
-        default:'../images/profil/default_profil.png'
+        defaultValue:'../images/profil/default_profil.png',
+        
       },
       password: {
         allowNull: false,

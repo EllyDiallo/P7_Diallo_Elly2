@@ -8,13 +8,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      idUSERS: {
+      userId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references:{
           model:"Users",
           key:"id"
-        }
+        },
+        defaultValue:0
       },
       title: {
         allowNull: false,
@@ -26,11 +27,13 @@ module.exports = {
       },
       attachment: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue:'../images/profil/default_profil.png'
       },
       likes: {
         allowNull: false,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       createdAt: {
         allowNull: false,

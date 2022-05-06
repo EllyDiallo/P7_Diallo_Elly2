@@ -2,8 +2,9 @@
 const bcrypt = require("bcrypt");
 const jwtUtils = require('../utils/jwt.utils');
 const models = require('../models');
-const userValidation = require('../validations/validations');
+const userValidation = require('../validations/validations-user');
 const asyncLib = require('async');
+const user = require("../models/user");
 
 
 
@@ -15,15 +16,14 @@ module.exports = {
         const {body} = req;
 
         const {error} = userValidation(body);
-        if(error) return res.status(401).json(error.details.map(i => i.message).join(','))
+        if(error) return res.status(401).json(error.details.map(i => i.message).join(',')+ " pas ok")
 
+          
         const email = req.body.email;
         const username = req.body.username;
         const password = req.body.password;
         const bio = req.body.bio;
         const picture = req.body.picture;
-
-
 
         asyncLib.waterfall([
       function(callback) {
@@ -44,7 +44,7 @@ module.exports = {
             callback(null, userFound, bcryptedPassword);
           });
         } else {
-          return res.status(409).json({ 'error': 'user already exist' });
+          return res.status(409).json({ err: 'user already exist' });
         }
       },
       function(userFound, bcryptedPassword, callback) {
@@ -52,8 +52,9 @@ module.exports = {
           email: email,
           username: username,
           password: bcryptedPassword,
+          isAdmin: 0,
           bio: bio,
-          isAdmin: 0
+          picture: picture
         })
         .then(function(newUser) {
           callback(newUser);
@@ -97,7 +98,11 @@ module.exports = {
       function(userFound, callback) {
         if (userFound) {
           bcrypt.compare(password, userFound.password, function(errBycrypt, resBycrypt) {
-            callback(null, userFound, resBycrypt);
+            if (errBycrypt){
+              return  res.status(404).json({ 'invalid password' : errBycrypt });
+            }else{callback(null, userFound, resBycrypt);
+            }
+            
           });
         } else {
           return res.status(404).json({ 'error': 'user not exist in DB' });
@@ -114,6 +119,7 @@ module.exports = {
       if (userFound) {
         return res.status(201).json({
           'userId': userFound.id,
+          'userName': userFound.username,
           'token': jwtUtils.generateTokenForUser(userFound)
         });
       } else {

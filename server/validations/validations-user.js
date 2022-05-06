@@ -12,8 +12,10 @@ const registerValidation = Joi.object().keys({
     password: Joi.string()
         .trim()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
-    bio: Joi.string().alphanum().min(2).max(500),
-    isAdmin : Joi.number()
+    
+    isAdmin : Joi.number(),
+    bio: Joi.string().min(2).max(500).allow(null),
+    picture : Joi.allow(null)
   }) 
  return registerValidation.validate(body)
 }; 
