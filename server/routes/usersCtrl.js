@@ -1,7 +1,8 @@
 //Import
 const bcrypt = require("bcrypt");
 const jwtUtils = require('../utils/jwt.utils');
-const models = require('../models');
+//const models = require('../models');
+const {Message, User} = require('../models');
 const userValidation = require('../validations/validations-user');
 const asyncLib = require('async');
 const user = require("../models/user");
@@ -11,6 +12,7 @@ const user = require("../models/user");
 //Routes
 
 module.exports = {
+    
     register: function(req,res){
         //params
         const {body} = req;
@@ -18,16 +20,12 @@ module.exports = {
         const {error} = userValidation(body);
         if(error) return res.status(401).json(error.details.map(i => i.message).join(',')+ " pas ok")
 
+        const { email, username, password, bio, picture } = req.body
           
-        const email = req.body.email;
-        const username = req.body.username;
-        const password = req.body.password;
-        const bio = req.body.bio;
-        const picture = req.body.picture;
 
         asyncLib.waterfall([
       function(callback) {
-        models.User.findOne({
+            User.findOne({
           attributes: ['email'],
           where: { email: email }
         })
@@ -48,7 +46,7 @@ module.exports = {
         }
       },
       function(userFound, bcryptedPassword, callback) {
-        var newUser = models.User.create({
+        var newUser = User.create({
           email: email,
           username: username,
           password: bcryptedPassword,
@@ -66,7 +64,8 @@ module.exports = {
     ], function(newUser) {
       if (newUser) {
         return res.status(201).json({
-          'userId': newUser.id
+          'uuid':newUser.uuid,
+          'pseudo':newUser.username
         });
       } else {
         return res.status(500).json({ 'error': 'cannot add user' });
@@ -74,10 +73,8 @@ module.exports = {
     });
     },
     login: function(req,res){
+        const {email, password} = req.body;
         
-         const email = req.body.email;
-         const password = req.body.password;
-
          if(email == null || password == null ){
             res.status(400).json({err : "misssing  parameters"})
         }
@@ -85,7 +82,7 @@ module.exports = {
 
         asyncLib.waterfall([
       function(callback) {
-        models.User.findOne({
+            User.findOne({
           where: { email: email }
         })
         .then(function(userFound) {
@@ -118,7 +115,7 @@ module.exports = {
     ], function(userFound) {
       if (userFound) {
         return res.status(201).json({
-          'userId': userFound.id,
+          'userUuid': userFound.uuid,
           'userName': userFound.username,
           'token': jwtUtils.generateTokenForUser(userFound)
         });
@@ -128,16 +125,31 @@ module.exports = {
     });
         
     },
-    getUserProfile: function(req, res) {
-    // Getting auth header
+   getUserProfile  : async (req, res) => {
+      const uuid = req.params.uuid;
+      try {
+        const user = await User.findOne({
+          attributes: ['uuid','username','bio','picture'],
+          where:{uuid}
+        })
+        return res.json(user)
+
+      } catch (error) {
+        console.log(error)
+        return res.status(500).json({error: 'Something went wrong'})
+        
+      }
+    },
+    /*getUserProfile: function(req, res) {
+    
     var headerAuth  = req.headers['authorization'];
     var userId      = jwtUtils.getUserId(headerAuth);
 
     if (userId < 0)
       return res.status(400).json({ 'error': 'wrong token' });
 
-    models.User.findOne({
-      attributes: [ 'id', 'email', 'username', 'bio','picture' ],
+        User.findOne({
+      attributes: [ 'uuid', 'email', 'username', 'bio','picture' ],
       where: { id: userId }
     }).then(function(user) {
       if (user) {
@@ -148,8 +160,33 @@ module.exports = {
     }).catch(function(err) {
       res.status(500).json({ 'error': 'cannot fetch user' });
     });
-  },
-  updateUserProfile: function(req, res) {
+  },*/
+  updateUserProfile: async (req, res) => {
+    
+   const uuid = req.params.uuid;
+   const {userModified} = req.body;
+    var bio = req.body.bio;
+    var picture = req.body.picture;
+
+
+    try {
+        const userFound = await User.findOne({
+          attributes: ['bio'],
+          where:{uuid}
+        })
+        await userFound.then(userData){
+          
+        }
+    }
+      catch (error) {
+        console.log(error)
+        return res.status(500).json({error: 'Something went wrong'})
+        
+      }
+    
+
+   
+  /*updateUserProfile: function(req, res) {
     // Getting auth header
     var headerAuth  = req.headers['authorization'];
     var userId      = jwtUtils.getUserId(headerAuth);
@@ -160,8 +197,8 @@ module.exports = {
 
     asyncLib.waterfall([
       function(callback) {
-        models.User.findOne({
-          attributes: ['id', 'bio','picture'],
+            User.findOne({
+          attributes: ['uuid', 'bio','picture'],
           where: { id: userId }
         }).then(function (userFound) {
           callback(null, userFound);
@@ -191,5 +228,5 @@ module.exports = {
         return res.status(500).json({ 'error': 'cannot update user profile' });
       }
     });
-}
-}
+  }*/
+}}

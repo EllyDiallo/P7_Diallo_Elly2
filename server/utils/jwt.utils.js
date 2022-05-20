@@ -11,7 +11,7 @@ module.exports = {
         },
         JWT_SIGN_TOKEN,
         {
-            expiresIn:'2h'
+            expiresIn:'5h'
         })
     },
     parseAuthorization: function(authorization) {

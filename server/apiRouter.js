@@ -2,6 +2,7 @@
 const express = require('express');
 const usersCtrl = require('./routes/usersCtrl');
 const messageCtrl = require('./routes/messagesCtrl');
+const auth = require('./middlewares/auth');
 
 
 
@@ -12,8 +13,8 @@ exports.router = (function(){
     //Users routes
     apiRouter.route('/users/register').post(usersCtrl.register);
     apiRouter.route('/users/login').post(usersCtrl.login);
-    apiRouter.route('/users/me').get(usersCtrl.getUserProfile);
-    apiRouter.route('/users/me').put(usersCtrl.updateUserProfile);
+    apiRouter.route('/users/:uuid').get(auth,usersCtrl.getUserProfile);
+    apiRouter.route('/users/:uuid').put(auth,usersCtrl.updateUserProfile);
 
     apiRouter.route('/messages/new').post(messageCtrl.createMessage);
     apiRouter.route('/messages').get(messageCtrl.listMessages);

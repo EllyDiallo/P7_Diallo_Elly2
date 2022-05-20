@@ -1,4 +1,5 @@
-const models = require('../models');
+//const models = require('../models');
+const {Message, User} = require('../models');
 const jwtUtils = require('../utils/jwt.utils');
 const asyncLib = require('async');
 const messageValidation = require('../validations/validation-message');
@@ -26,7 +27,7 @@ module.exports = {
 
         asyncLib.waterfall([
             function(callback) {
-                models.User.findOne({
+                    User.findOne({
                 where: { id: userId }
                 })
                 .then(function(userFound) {
@@ -39,7 +40,7 @@ module.exports = {
             },
             function(userFound, callback) {
                 if(userFound) {
-                models.Message.create({
+                      Message.create({
                     title  : title,
                     content: content,
                     likes  : 0,
@@ -64,25 +65,16 @@ module.exports = {
         );
     },
     listMessages: function(req, res) {
-   /* var fields  = req.query.fields;
-    var limit   = parseInt(req.query.limit);
-    var offset  = parseInt(req.query.offset);
-    var order   = req.query.order;
+  
 
-    if (limit > ITEMS_LIMIT) {
-      limit = ITEMS_LIMIT;
-    }*/
-
-    models.Message.findAll({include: [{
-        model: models.User,
-        attributes: [ 'username' ]
-      }]/*
-      order: [(order != null) ? order.split(':') : ['title', 'ASC']],
-      attributes: (fields !== '*' && fields != null) ? fields.split(',') : null,
-      limit: (!isNaN(limit)) ? limit : null,
-      offset: (!isNaN(offset)) ? offset : null,
-      
-   */ }).then(function(messages) {
+          Message.findAll({
+      attributes: [ 'title','content','attachment' ],
+      include    : [{
+          model: User,
+          attributes: ['username']
+        }
+      ]
+      }).then(function(messages) {
       if (messages) {
         res.status(200).json(messages);
       } else {

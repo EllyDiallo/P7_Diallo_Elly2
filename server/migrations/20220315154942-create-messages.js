@@ -13,6 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         references:{
           model:"Users",
+          schema: 'schema',
           key:"id"
         },
         defaultValue:0
